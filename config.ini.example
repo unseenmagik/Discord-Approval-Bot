@@ -7,6 +7,10 @@ token =
 guild_id =
 
 [roles]
+; Note: the bot doesn't control who can SEE the Verify button. Discord shows the panel to anyone
+; who can view welcome_channel_id, so set that channel's permissions to the roles you want.
+; Anyone else who presses Verify is turned away with a message.
+;
 ; The member pressing Verify must hold one of these roles (e.g. your Ko-fi role).
 ; Leave blank to allow anyone who can see the panel.
 required_role_ids =
