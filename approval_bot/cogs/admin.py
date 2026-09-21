@@ -13,7 +13,7 @@ from discord.ext import commands
 
 from approval_bot.db import RESULT_FILTERS, Event, Result
 from approval_bot.referrers import ReferrerFileError, ReferrerList
-from approval_bot.views import VerifyPanelView
+from approval_bot.views import missing_panel_permissions, post_panel
 
 if TYPE_CHECKING:
     from approval_bot.bot_core import ApprovalBot
@@ -100,17 +100,18 @@ class AdminCog(commands.Cog):
         settings = self.bot.settings
         target = channel or self.bot.get_channel(settings.welcome_channel_id)
         if not isinstance(target, discord.TextChannel):
-            await interaction.followup.send("The welcome channel isn't set up correctly. Check `welcome_channel_id`.")
+            await interaction.followup.send(
+                f"`welcome_channel_id` ({settings.welcome_channel_id}) isn't a text channel in this server."
+            )
+            return
+        missing = missing_panel_permissions(target)
+        if missing:
+            await interaction.followup.send(f"I can't post in {target.mention}. I'm missing: **{', '.join(missing)}**.")
             return
 
-        embed = discord.Embed(title=settings.panel_title, description=settings.panel_description, color=settings.embed_color)
-        message = await target.send(embed=embed, view=VerifyPanelView())
-        try:
-            await message.pin(reason=f"Verification panel posted by {interaction.user}")
-            note = "and pinned it"
-        except discord.HTTPException:
-            note = "but couldn't pin it (the bot needs **Manage Messages** / **Pin Messages** there)"
-        await interaction.followup.send(f"Posted the panel in {target.mention} {note}.")
+        message, pinned = await post_panel(target, self.bot, reason=f"Verification panel posted by {interaction.user}")
+        note = "and pinned it" if pinned else "but couldn't pin it (I need **Pin Messages** or **Manage Messages** there)"
+        await interaction.followup.send(f"Posted the panel in {target.mention} {note}: {message.jump_url}")
 
     # --- approvals ----------------------------------------------------------
 

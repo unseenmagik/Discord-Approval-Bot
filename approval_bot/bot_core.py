@@ -11,7 +11,7 @@ from approval_bot.config import BotSettings, ConfigError, load_settings
 from approval_bot.db import ApprovalDatabase
 from approval_bot.referrers import ReferrerFileError, ReferrerList
 from approval_bot.verification import VerificationService
-from approval_bot.views import AdminActionButton, VerifyPanelView
+from approval_bot.views import AdminActionButton, VerifyPanelView, find_panel, missing_panel_permissions, post_panel
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class ApprovalBot(commands.Bot):
         self.db = ApprovalDatabase(settings.database_file)
         self.referrers = ReferrerList(settings.referrers_file)
         self.verification = VerificationService(self)
+        self._panel_checked = False
 
     async def setup_hook(self) -> None:
         await self.db.connect()
@@ -56,6 +57,32 @@ class ApprovalBot(commands.Bot):
         me = guild.me
         if not me.guild_permissions.manage_roles:
             log.warning("The bot is missing the Manage Roles permission, so approvals will fail")
+
+        # on_ready can fire again after reconnects; only check for the panel once.
+        if self.settings.auto_post_panel and not self._panel_checked:
+            self._panel_checked = True
+            await self.ensure_panel()
+
+    async def ensure_panel(self) -> None:
+        channel_id = self.settings.welcome_channel_id
+        channel = self.get_channel(channel_id)
+        if not isinstance(channel, discord.TextChannel):
+            log.error("welcome_channel_id %s is not a text channel in this server, so the panel wasn't posted", channel_id)
+            return
+        missing = missing_panel_permissions(channel)
+        if missing:
+            log.error("Can't post the verification panel in #%s. The bot is missing: %s", channel.name, ", ".join(missing))
+            return
+        try:
+            existing = await find_panel(channel, self.user.id)
+            if existing:
+                log.info("Verification panel already present in #%s (%s)", channel.name, existing.jump_url)
+                return
+            message, pinned = await post_panel(channel, self, reason="Verification panel posted on startup")
+        except discord.HTTPException:
+            log.exception("Failed to post the verification panel in #%s", channel.name)
+            return
+        log.info("Posted %sthe verification panel in #%s (%s)", "and pinned " if pinned else "", channel.name, message.jump_url)
 
 
 def main() -> None:

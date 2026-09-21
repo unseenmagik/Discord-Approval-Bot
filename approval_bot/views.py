@@ -32,6 +32,50 @@ async def _reply(interaction: discord.Interaction, message: str) -> None:
         await interaction.response.send_message(message, ephemeral=True)
 
 
+def missing_panel_permissions(channel: discord.TextChannel) -> list[str]:
+    """Channel permissions the bot lacks for posting and finding the panel."""
+    perms = channel.permissions_for(channel.guild.me)
+    required = {
+        "View Channel": perms.view_channel,
+        "Send Messages": perms.send_messages,
+        "Embed Links": perms.embed_links,
+        "Read Message History": perms.read_message_history,
+    }
+    return [name for name, granted in required.items() if not granted]
+
+
+def is_panel_message(message: discord.Message, bot_user_id: int) -> bool:
+    return message.author.id == bot_user_id and any(
+        getattr(child, "custom_id", None) == VERIFY_BUTTON_ID
+        for row in message.components
+        for child in getattr(row, "children", ())
+    )
+
+
+async def find_panel(channel: discord.TextChannel, bot_user_id: int) -> discord.Message | None:
+    """Looks for an existing panel in the channel's pins, then its recent messages."""
+    async for message in channel.pins(limit=50):
+        if is_panel_message(message, bot_user_id):
+            return message
+    async for message in channel.history(limit=50):
+        if is_panel_message(message, bot_user_id):
+            return message
+    return None
+
+
+async def post_panel(channel: discord.TextChannel, bot: ApprovalBot, *, reason: str) -> tuple[discord.Message, bool]:
+    """Posts and pins the panel. Returns the message and whether pinning worked."""
+    settings = bot.settings
+    embed = discord.Embed(title=settings.panel_title, description=settings.panel_description, color=settings.embed_color)
+    message = await channel.send(embed=embed, view=VerifyPanelView())
+    try:
+        await message.pin(reason=reason)
+    except discord.HTTPException as exc:
+        log.warning("Posted the panel in #%s but couldn't pin it (needs Pin/Manage Messages): %s", channel.name, exc)
+        return message, False
+    return message, True
+
+
 class VerifyPanelView(discord.ui.View):
     """The pinned panel's Verify button. Persistent: keeps working after restarts."""
 

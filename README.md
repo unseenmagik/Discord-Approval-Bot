@@ -65,7 +65,7 @@ sudo chmod 600 config.ini
 sudo -u approvalbot .venv/bin/python bot.py  # test run, Ctrl+C to stop
 ```
 
-`referrers.json` and `data/approvals.db` are created on first run. Then run `/verify-panel` in Discord.
+`referrers.json` and `data/approvals.db` are created on first run. On startup the bot posts and pins the panel in `welcome_channel_id` unless one is already there (turn this off with `auto_post = false` under `[panel]`). If it can't, the log says why, e.g. which channel permission is missing. `/verify-panel` posts one manually.
 
 ### Option A: systemd
 

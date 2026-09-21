@@ -44,6 +44,9 @@ referrers_file = referrers.json
 database_file = data/approvals.db
 
 [panel]
+; Post and pin the panel in welcome_channel_id on startup if it isn't already there.
+; You can also post it yourself with /verify-panel.
+auto_post = true
 title = Verify your referral
 ; Use \n for a new line.
 description = Welcome! To unlock the rest of the server, tell us who referred you.\n\nPress **Verify** and enter your referrer's **Discord username** or **user ID**. If you don't know it, enter their **name** instead.

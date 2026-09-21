@@ -30,6 +30,7 @@ class BotSettings:
     max_attempts: int
     referrers_file: Path
     database_file: Path
+    auto_post_panel: bool
     panel_title: str
     panel_description: str
     embed_color: int
@@ -99,6 +100,7 @@ def load_settings(config_path: str | Path | None = None) -> BotSettings:
         max_attempts=max_attempts,
         referrers_file=base_dir / _str(config, "verification", "referrers_file", "referrers.json"),
         database_file=base_dir / _str(config, "verification", "database_file", "data/approvals.db"),
+        auto_post_panel=config.getboolean("panel", "auto_post", fallback=True),
         panel_title=_str(config, "panel", "title", "Verify your referral"),
         panel_description=_str(config, "panel", "description", "Press **Verify** to get started.").replace("\\n", "\n"),
         embed_color=int(_str(config, "panel", "embed_color", "0x5865F2"), 0),
