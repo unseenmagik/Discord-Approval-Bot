@@ -7,15 +7,14 @@ token =
 guild_id =
 
 [roles]
-; Roles that count as "verified".
-;  - A referrer must hold at least one of these for the referral to be accepted.
-;  - Members who already hold one of these (or the approved role) cannot verify again.
-verified_role_ids =
-; Role given to a member when they are approved. Usually also listed in verified_role_ids.
-approved_role_id =
-; Optional: members must hold one of these roles to use the Verify button (e.g. your Ko-fi role).
+; The member pressing Verify must hold one of these roles (e.g. your Ko-fi role).
 ; Leave blank to allow anyone who can see the panel.
 required_role_ids =
+; The referrer they name must hold one of these roles.
+; Add approved_role_id here too if approved members should be able to refer others.
+referrer_role_ids =
+; Role given on approval. Members who already have it are told they're already verified.
+approved_role_id =
 
 [admin]
 ; Users and/or roles allowed to use the admin slash commands and admin buttons.

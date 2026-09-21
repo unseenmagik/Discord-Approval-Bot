@@ -69,10 +69,10 @@ class VerificationService:
         return any(role.id in self.settings.admin_role_ids for role in getattr(user, "roles", ()))
 
     def is_verified(self, member: discord.Member) -> bool:
-        return any(role.id in self.settings.already_verified_role_ids for role in member.roles)
+        return any(role.id == self.settings.approved_role_id for role in member.roles)
 
     def can_refer(self, member: discord.Member) -> bool:
-        return any(role.id in self.settings.verified_role_ids for role in member.roles)
+        return any(role.id in self.settings.referrer_role_ids for role in member.roles)
 
     async def check_eligibility(self, member: discord.Member) -> str | None:
         """Returns a message explaining why the member can't verify, or None if they can."""

@@ -16,7 +16,7 @@ class ConfigError(ValueError):
 class BotSettings:
     token: str
     guild_id: int
-    verified_role_ids: frozenset[int]
+    referrer_role_ids: frozenset[int]
     approved_role_id: int
     required_role_ids: frozenset[int]
     admin_user_ids: frozenset[int]
@@ -34,10 +34,6 @@ class BotSettings:
     panel_title: str
     panel_description: str
     embed_color: int
-
-    @property
-    def already_verified_role_ids(self) -> frozenset[int]:
-        return self.verified_role_ids | {self.approved_role_id}
 
 
 def _str(config: ConfigParser, section: str, key: str, fallback: str = "") -> str:
@@ -75,9 +71,11 @@ def load_settings(config_path: str | Path | None = None) -> BotSettings:
     if not token:
         raise ConfigError("[bot] token is required")
 
-    verified_role_ids = frozenset(_int_list(config, "roles", "verified_role_ids"))
-    if not verified_role_ids:
-        raise ConfigError("[roles] verified_role_ids needs at least one role ID")
+    # verified_role_ids is the old name for referrer_role_ids.
+    referrer_key = "referrer_role_ids" if config.has_option("roles", "referrer_role_ids") else "verified_role_ids"
+    referrer_role_ids = frozenset(_int_list(config, "roles", referrer_key))
+    if not referrer_role_ids:
+        raise ConfigError("[roles] referrer_role_ids needs at least one role ID")
 
     max_attempts = int(_str(config, "verification", "max_attempts", "3"))
     if max_attempts < 1:
@@ -86,7 +84,7 @@ def load_settings(config_path: str | Path | None = None) -> BotSettings:
     return BotSettings(
         token=token,
         guild_id=_int(config, "bot", "guild_id"),
-        verified_role_ids=verified_role_ids,
+        referrer_role_ids=referrer_role_ids,
         approved_role_id=_int(config, "roles", "approved_role_id"),
         required_role_ids=frozenset(_int_list(config, "roles", "required_role_ids")),
         admin_user_ids=frozenset(_int_list(config, "admin", "admin_user_ids")),

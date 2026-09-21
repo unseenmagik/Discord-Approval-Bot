@@ -6,12 +6,12 @@ A gatekeeper bot that checks who referred new members before giving them access 
 
 1. A pinned panel in your welcome channel has a **Verify** button.
 2. A member presses it and a form asks who referred them. They enter **one** of:
-   - **The referrer's Discord username or user ID** (an `@mention` also works). The referrer must be in the server and hold one of the `verified_role_ids`.
+   - **The referrer's Discord username or user ID** (an `@mention` also works). The referrer must be in the server and hold one of the `referrer_role_ids`.
    - **The referrer's name**, if they don't know the username. It must match a name in `referrers.json`. Capitals and extra spaces are ignored.
 3. If it matches, the bot gives them `approved_role_id` and posts an approval notice to the admin channel, tagging the approval contacts.
 4. If it doesn't match, the bot tells them why and how many attempts they have left. After `max_attempts` failures (default 3), they are locked, and the admin channel gets an alert tagging the lockout contacts. The alert has **Approve** and **Reset attempts** buttons.
 
-Anyone who already holds a verified role (or the approved role) is told they're already verified. All replies are private to the member. Every result is logged with a timestamp in `data/approvals.db` (SQLite).
+Only members with a `required_role_ids` role (e.g. Ko-fi) can verify. Anyone who already has the approved role is told they're already verified. All replies are private to the member. Every result is logged with a timestamp in `data/approvals.db` (SQLite).
 
 ## Admin commands
 
