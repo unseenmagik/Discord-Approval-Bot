@@ -1,0 +1,7 @@
+config.ini
+referrers.json
+data/
+.venv/
+__pycache__/
+*.pyc
+*.log
