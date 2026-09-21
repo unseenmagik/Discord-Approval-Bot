@@ -97,3 +97,7 @@ Back up `config.ini`, `referrers.json` and `data/`. The database uses WAL mode, 
 ## Configuration
 
 See `config.ini.example`. Every setting is commented. To use a config file somewhere else, set `APPROVAL_BOT_CONFIG=/path/to/config.ini`.
+
+## License
+
+[MIT](LICENSE) © 2026 Magik. Free to use, modify and share, including commercially, as long as the copyright notice and license are kept with any copy.
