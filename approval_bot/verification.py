@@ -27,13 +27,13 @@ LOCKED_MESSAGE = (
 )
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class Outcome:
     ok: bool
     message: str
 
 
-@dataclass(slots=True)
+@dataclass
 class ReferralCheck:
     method: str  # "discord" or "name"
     value: str
@@ -101,7 +101,10 @@ class VerificationService:
                     return None
             return member
 
-        target = value.removeprefix("@").strip().removesuffix("#0").casefold()
+        target = value.lstrip("@").strip()
+        if target.endswith("#0"):
+            target = target[:-2]
+        target = target.casefold()
         for member in guild.members:
             if member.name.casefold() == target:
                 return member

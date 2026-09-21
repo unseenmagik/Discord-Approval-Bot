@@ -12,7 +12,7 @@ class ConfigError(ValueError):
     """Raised when config.ini is missing or contains invalid values."""
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class BotSettings:
     token: str
     guild_id: int

@@ -52,13 +52,13 @@ RESULT_FILTERS: dict[str, tuple[str, ...]] = {
 }
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class AttemptState:
     failed_count: int = 0
     locked: bool = False
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class Event:
     id: int
     created_at: int
@@ -81,11 +81,11 @@ class ApprovalDatabase:
         self._lock = threading.Lock()
 
     async def connect(self) -> None:
-        await asyncio.to_thread(self._connect)
+        await self._run(self._connect)
 
     async def close(self) -> None:
         if self._conn is not None:
-            await asyncio.to_thread(self._conn.close)
+            await self._run(self._conn.close)
             self._conn = None
 
     def _connect(self) -> None:
@@ -101,7 +101,7 @@ class ApprovalDatabase:
             with self._lock:
                 return fn(*args)
 
-        return await asyncio.to_thread(locked)
+        return await asyncio.get_running_loop().run_in_executor(None, locked)
 
     @property
     def conn(self) -> sqlite3.Connection:

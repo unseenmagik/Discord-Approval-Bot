@@ -5,7 +5,7 @@ import io
 import json
 import logging
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import discord
 from discord import app_commands
@@ -95,7 +95,7 @@ class AdminCog(commands.Cog):
     @app_commands.describe(channel="Channel to post in (defaults to the configured welcome channel)")
     @app_commands.guild_only()
     @admin_only()
-    async def verify_panel(self, interaction: discord.Interaction, channel: discord.TextChannel | None = None) -> None:
+    async def verify_panel(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel] = None) -> None:
         await interaction.response.defer(ephemeral=True)
         settings = self.bot.settings
         target = channel or self.bot.get_channel(settings.welcome_channel_id)
@@ -121,8 +121,8 @@ class AdminCog(commands.Cog):
     async def approvals_list(
         self,
         interaction: discord.Interaction,
-        status: app_commands.Choice[str] | None = None,
-        user: discord.User | None = None,
+        status: Optional[app_commands.Choice[str]] = None,
+        user: Optional[discord.User] = None,
         limit: app_commands.Range[int, 1, 50] = 15,
     ) -> None:
         key = status.value if status else "all"
@@ -260,7 +260,7 @@ class AdminCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         file: discord.Attachment,
-        mode: app_commands.Choice[str] | None = None,
+        mode: Optional[app_commands.Choice[str]] = None,
     ) -> None:
         if file.size > MAX_IMPORT_BYTES:
             await interaction.response.send_message("That file is too large (1 MB max).", ephemeral=True)
