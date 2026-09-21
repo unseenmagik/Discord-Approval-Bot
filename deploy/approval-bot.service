@@ -1,29 +1,20 @@
-# systemd unit for the Discord Approval Bot.
-# Install: sudo cp deploy/approval-bot.service /etc/systemd/system/
-#          sudo systemctl daemon-reload && sudo systemctl enable --now approval-bot
-# Adjust User and the paths if you installed somewhere other than /opt/discord-approval-bot.
+# systemd user unit for the Discord Approval Bot (no root needed).
+# Install: mkdir -p ~/.config/systemd/user && cp deploy/approval-bot.service ~/.config/systemd/user/
+#          systemctl --user daemon-reload && systemctl --user enable --now approval-bot
+#          loginctl enable-linger   # keep it running after logout and start on boot
+# %h is your home directory. Adjust the paths if you installed somewhere other than ~/discord-approval-bot.
 
 [Unit]
 Description=Discord Approval Bot
-After=network-online.target
-Wants=network-online.target
 
 [Service]
 Type=simple
-User=approvalbot
-Group=approvalbot
-WorkingDirectory=/opt/discord-approval-bot
-ExecStart=/opt/discord-approval-bot/.venv/bin/python bot.py
+WorkingDirectory=%h/discord-approval-bot
+ExecStart=%h/discord-approval-bot/.venv/bin/python bot.py
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
 RestartSec=5
-
-# Hardening: the bot only needs to write inside its own folder.
 NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=true
-PrivateTmp=true
-ReadWritePaths=/opt/discord-approval-bot
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

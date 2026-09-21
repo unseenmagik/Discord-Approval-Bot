@@ -49,43 +49,46 @@ To hide the admin commands from regular members, go to **Server Settings → Int
 
 ## Install on Ubuntu
 
+Everything runs as your normal user, no root needed. You need `python3`, `python3-venv` and `git` installed (check with `python3 -m venv --help` and `git --version`).
+
 ```bash
-sudo apt update && sudo apt install -y python3 python3-venv git
-sudo useradd --system --create-home --shell /usr/sbin/nologin approvalbot
-sudo git clone <your-repo-url> /opt/discord-approval-bot   # or copy the files there
-sudo chown -R approvalbot:approvalbot /opt/discord-approval-bot
-cd /opt/discord-approval-bot
+git clone <your-repo-url> ~/discord-approval-bot   # or copy the files there
+cd ~/discord-approval-bot
 
-sudo -u approvalbot python3 -m venv .venv
-sudo -u approvalbot .venv/bin/pip install -r requirements.txt
-sudo -u approvalbot cp config.ini.example config.ini
-sudo -u approvalbot nano config.ini          # fill in token and IDs
-sudo chmod 600 config.ini
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+cp config.ini.example config.ini
+nano config.ini                              # fill in token and IDs
+chmod 600 config.ini
 
-sudo -u approvalbot .venv/bin/python bot.py  # test run, Ctrl+C to stop
+.venv/bin/python bot.py                      # test run, Ctrl+C to stop
 ```
 
 `referrers.json` and `data/approvals.db` are created on first run. On startup the bot posts and pins the panel in `welcome_channel_id` unless one is already there (turn this off with `auto_post = false` under `[panel]`). If it can't, the log says why, e.g. which channel permission is missing. `/verify-panel` posts one manually.
 
-### Option A: systemd
+### Option A: systemd (user service)
 
 ```bash
-sudo cp deploy/approval-bot.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now approval-bot
-journalctl -u approval-bot -f                # logs
+mkdir -p ~/.config/systemd/user
+cp deploy/approval-bot.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now approval-bot
+loginctl enable-linger                       # keep running after you log out and start on boot
+journalctl --user -u approval-bot -f         # logs
 ```
+
+The unit assumes the bot lives in `~/discord-approval-bot`. Edit the paths in the service file if you put it elsewhere.
 
 ### Option B: pm2
 
 ```bash
-cd /opt/discord-approval-bot
+cd ~/discord-approval-bot
 pm2 start ecosystem.config.js
-pm2 save && pm2 startup                      # restart on reboot
+pm2 save
 pm2 logs approval-bot
 ```
 
-pm2 runs the bot as whichever user started it, and that user needs write access to the folder. Use systemd or pm2, not both.
+pm2 runs the bot as whichever user started it. To start it again after a reboot without root, add `@reboot pm2 resurrect` to your crontab (`crontab -e`). Use systemd or pm2, not both.
 
 ## Backups
 
